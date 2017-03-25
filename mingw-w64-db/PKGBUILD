@@ -7,6 +7,7 @@ pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=6.0.30
 pkgrel=1
 pkgdesc="The Berkeley DB embedded database system (mingw-w64)"
+groups=('gramps_fixed')
 arch=('any')
 url="http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/overview/index.html"
 license=('custom')
