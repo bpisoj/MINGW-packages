@@ -4,8 +4,8 @@
 _realname=db
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=6.0.19
-pkgrel=4
+pkgver=6.0.30
+pkgrel=1
 pkgdesc="The Berkeley DB embedded database system (mingw-w64)"
 arch=('any')
 url="http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/overview/index.html"
