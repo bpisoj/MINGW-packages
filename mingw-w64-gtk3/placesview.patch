@@ -1,0 +1,15 @@
+--- gtk/gtkplacesview.c.orig	2016-01-07 04:25:56.000000000 +0100
++++ gtk/gtkplacesview.c	2016-11-14 20:29:42.114362700 +0100
+@@ -1119,9 +1119,11 @@
+   populate_servers (view);
+ 
+   /* fetch networks and add them asynchronously */
++/* is this relevant for windows? fetch_networks use nautilus network:/// */
++#ifndef G_OS_WIN32
+   if (!gtk_places_view_get_local_only (view))
+     fetch_networks (view);
+-
++#endif
+   update_view_mode (view);
+   /* Check whether we still are in a loading state */
+   update_loading (view);
