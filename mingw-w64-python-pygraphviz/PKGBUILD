@@ -1,0 +1,74 @@
+# Contributor: Josip <bpisoj@gmail.com>
+
+_realname=pygraphviz
+pkgbase=mingw-w64-python-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-python2-${_realname}" "${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
+pkgver=1.4rc1
+pkgrel=1
+pkgdesc="Python interface to Graphviz"
+url="https://pypi.python.org/pypi/pygraphviz"
+license=("BSD")
+arch=('any')
+makedepends=("${MINGW_PACKAGE_PREFIX}-python2-setuptools"
+             "${MINGW_PACKAGE_PREFIX}-python3-setuptools"
+             )
+_dtoken="e44c51b47054ad88aadbe9edcf344bf9b3c61d2d6d15719180ee4d130bcd"
+source=("https://pypi.python.org/packages/25/b1/${_dtoken}/${_realname}-${pkgver}.tar.gz"
+        "pygraphviz.patch")
+sha256sums=('2a0567a2e63dd83a8dc3d37889b5a90eff9ed641fc07681dcf56b6964d329301'
+            '4cc2008c2f668fb1917acf9099d9d823d7159682a2e3fcc3f593485df3f7441e')
+
+prepare() {
+  cd ${srcdir}/${_realname}-${pkgver}
+  patch -p0 -i ${srcdir}/pygraphviz.patch
+  
+  cd ${srcdir}
+  for pver in {2,3}; do 
+    rm -rf python${pver}-build-${CARCH}| true
+    cp -r "${_realname}-${pkgver}" "python${pver}-build-${CARCH}"
+  done
+}
+
+package_python3-pygraphviz() {
+  depends=("${MINGW_PACKAGE_PREFIX}-python3"
+          #"${MINGW_PACKAGE_PREFIX}-graphviz"
+          )
+  cd ${srcdir}/python3-build-${CARCH}
+  ${MINGW_PREFIX}/bin/python3 setup.py build
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
+  ${MINGW_PREFIX}/bin/python3 setup.py install --prefix=${MINGW_PREFIX} --root="${pkgdir}"
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/python3-${_realname}/LICENSE"
+  
+  cp "${pkgdir}${MINGW_PREFIX}/lib/python3.5/site-packages/pygraphviz/_graphviz-cpython-35m.dll" "${pkgdir}${MINGW_PREFIX}/lib/python3.5/site-packages"
+}
+
+package_python2-pygraphviz() {
+  depends=("${MINGW_PACKAGE_PREFIX}-python2"
+          #"${MINGW_PACKAGE_PREFIX}-graphviz"
+          )
+  cd ${srcdir}/python2-build-${CARCH}
+  ${MINGW_PREFIX}/bin/python2 setup.py build
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
+  ${MINGW_PREFIX}/bin/python2 setup.py install --prefix=${MINGW_PREFIX} --root="${pkgdir}"
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/python2-${_realname}/LICENSE"
+  
+  cp "${pkgdir}${MINGW_PREFIX}/lib/python2.7/site-packages/pygraphviz/_graphviz.pyd" "${pkgdir}${MINGW_PREFIX}/lib/python2.7/site-packages"
+}
+
+package_mingw-w64-i686-python2-pygraphviz() {
+  package_python2-graphviz
+}
+
+package_mingw-w64-i686-python3-pygraphviz() {
+  package_python3-pygraphviz
+}
+
+package_mingw-w64-x86_64-python2-pygraphviz() {
+  package_python2-pygraphviz
+}
+
+package_mingw-w64-x86_64-python3-pygraphviz() {
+  package_python3-pygraphviz
+}

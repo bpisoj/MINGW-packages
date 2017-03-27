@@ -1,0 +1,93 @@
+--- pygraphviz/graphviz.i.orig	2016-11-06 15:10:12.000000000 +0100
++++ pygraphviz/graphviz.i	2017-03-27 20:31:26.157846500 +0200
+@@ -13,14 +13,33 @@
+ 
+ %{
+ #if PY_VERSION_HEX >= 0x03000000
+-extern PyTypeObject PyIOBase_Type;
++static PyObject *PyIOBase_TypeObj;
++
++static int init_file_emulator(void)
++{
++    PyObject *io = PyImport_ImportModule("_io");
++    if (io == NULL)
++        return -1;
++    PyIOBase_TypeObj = PyObject_GetAttrString(io, "_IOBase");
++    if (PyIOBase_TypeObj == NULL)
++        return -1;
++    return 0;
++}
++#endif
++%}
++
++%init %{
++#if PY_VERSION_HEX >= 0x03000000
++if (init_file_emulator() < 0) {
++    return NULL;
++}
+ #endif
+ %}
+ 
+ %typemap(in) FILE* (int fd, PyObject *mode_obj, PyObject *mode_byte_obj, char *mode) {
+ %#if PY_VERSION_HEX >= 0x03000000 || defined(PYPY_VERSION)
+ %#if !defined(PYPY_VERSION)
+-    if (!PyObject_IsInstance($input, (PyObject *)&PyIOBase_Type)) {
++    if (!PyObject_IsInstance($input, PyIOBase_TypeObj)) {
+         PyErr_SetString(PyExc_TypeError, "not a file handle");
+         return NULL;
+     }
+--- pygraphviz/graphviz_wrap.c	2016-11-06 15:10:12.000000000 +0100
++++ pygraphviz/graphviz_wrap.c.orig	2017-03-27 20:45:17.419886300 +0200
+@@ -2988,7 +2988,18 @@
+ 
+ 
+ #if PY_VERSION_HEX >= 0x03000000
+-extern PyTypeObject PyIOBase_Type;
++static PyObject *PyIOBase_TypeObj;
++
++static int init_file_emulator(void)
++{
++    PyObject *io = PyImport_ImportModule("_io");
++    if (io == NULL)
++        return -1;
++    PyIOBase_TypeObj = PyObject_GetAttrString(io, "_IOBase");
++    if (PyIOBase_TypeObj == NULL)
++        return -1;
++    return 0;
++}
+ #endif
+ 
+ 
+@@ -3449,7 +3460,7 @@
+   {
+ #if PY_VERSION_HEX >= 0x03000000 || defined(PYPY_VERSION)
+ #if !defined(PYPY_VERSION)
+-    if (!PyObject_IsInstance(obj0, (PyObject *)&PyIOBase_Type)) {
++    if (!PyObject_IsInstance(obj0, PyIOBase_TypeObj)) {
+       PyErr_SetString(PyExc_TypeError, "not a file handle");
+       return NULL;
+     }
+@@ -3523,7 +3534,7 @@
+   {
+ #if PY_VERSION_HEX >= 0x03000000 || defined(PYPY_VERSION)
+ #if !defined(PYPY_VERSION)
+-    if (!PyObject_IsInstance(obj1, (PyObject *)&PyIOBase_Type)) {
++    if (!PyObject_IsInstance(obj1, PyIOBase_TypeObj)) {
+       PyErr_SetString(PyExc_TypeError, "not a file handle");
+       return NULL;
+     }
+@@ -6050,7 +6061,13 @@
+ #endif
+   
+   SWIG_InstallConstants(d,swig_const_table);
+-  
++ 
++#if PY_VERSION_HEX >= 0x03000000
++  if (init_file_emulator() < 0) {
++    return NULL;
++  }
++#endif
++ 
+   PyDict_SetItemString(md,(char*)"cvar", SWIG_globals());
+   SWIG_addvarlink(SWIG_globals(),(char*)"Agdirected",Swig_var_Agdirected_get, Swig_var_Agdirected_set);
+   SWIG_addvarlink(SWIG_globals(),(char*)"Agstrictdirected",Swig_var_Agstrictdirected_get, Swig_var_Agstrictdirected_set);
