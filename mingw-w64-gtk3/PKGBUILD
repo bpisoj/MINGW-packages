@@ -57,9 +57,10 @@ build() {
     --enable-broadway-backend \
     --disable-cups \
     --with-included-immodules \
-    --enable-silent-rules
+    --enable-silent-rules \
+    --disable-maintainer-mode
 
-  make #V=1
+  make -j 1
 }
 
 package() {
